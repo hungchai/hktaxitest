@@ -1,0 +1,3 @@
+# Google AdSense ads.txt
+# 申請通過後，將下一行取消註解，並把 pub-xxxxxxxxxxxxxxxx 換成你的 Publisher ID
+# google.com, pub-xxxxxxxxxxxxxxxx, DIRECT, f08c47fec0942fa0
