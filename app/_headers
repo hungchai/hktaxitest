@@ -8,3 +8,6 @@
 
 /index.html
   Cache-Control: public, max-age=60
+
+/images/*
+  Cache-Control: public, max-age=86400

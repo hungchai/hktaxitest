@@ -59,18 +59,28 @@ window.ADSENSE = {
   --line:#e3e8f0; --gold:#f5a623;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:"PingFang HK","Microsoft JhengHei","Noto Sans TC",sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+body{font-family:"PingFang HK","Microsoft JhengHei","Noto Sans TC",sans-serif;background-color:var(--bg);color:var(--ink);min-height:100dvh}
+body.view-home,body.view-plan,body.view-result{
+  background-image:linear-gradient(180deg,rgba(244,246,250,.78) 0%,rgba(244,246,250,.92) 38%,var(--bg) 72%),url("images/bg-road-view.jpg");
+  background-size:cover;
+  background-position:center top;
+  background-attachment:fixed;
+}
+body.view-quiz,body.view-exam{background:var(--bg)}
 button{font-family:inherit;cursor:pointer;border:none;background:none}
 .hidden{display:none!important}
 
 /* ===== Header ===== */
-header{background:linear-gradient(135deg,#1a2332 0%,#2b3a55 100%);color:#fff;padding:18px 20px 22px;position:sticky;top:0;z-index:50;box-shadow:0 2px 12px rgba(0,0,0,.18)}
-.hd-top{display:flex;align-items:center;gap:12px;max-width:860px;margin:0 auto}
-.hd-logo{width:42px;height:42px;border-radius:11px;background:var(--red);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+header{background:#1a2332;color:#fff;padding:18px 20px 22px;position:sticky;top:0;z-index:50;overflow:hidden}
+header::before{content:"";position:absolute;inset:0;background:url("images/bg-header-taxi.jpg") center 58%/cover no-repeat;pointer-events:none}
+header::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(26,35,50,.9) 0%,rgba(26,35,50,.62) 52%,rgba(26,35,50,.82) 100%);pointer-events:none}
+.hd-top{display:flex;align-items:center;gap:12px;max-width:860px;margin:0 auto;position:relative;z-index:1}
+.hd-logo{width:42px;height:42px;border-radius:11px;overflow:hidden;flex-shrink:0;border:1px solid rgba(255,255,255,.28);background:var(--red)}
+.hd-logo img{width:100%;height:100%;object-fit:cover;display:block}
 .hd-title{font-size:17px;font-weight:700;line-height:1.3}
 .hd-sub{font-size:12px;opacity:.75;margin-top:2px}
 .hd-back{margin-left:auto;font-size:13px;color:#fff;background:rgba(255,255,255,.14);padding:7px 14px;border-radius:8px}
-.taxi-stripes{display:flex;height:4px;max-width:860px;margin:12px auto 0;border-radius:2px;overflow:hidden}
+.taxi-stripes{display:flex;height:4px;max-width:860px;margin:12px auto 0;border-radius:2px;overflow:hidden;position:relative;z-index:1}
 .taxi-stripes span{flex:1}
 .taxi-stripes .r{background:var(--red)}.taxi-stripes .g{background:var(--green)}.taxi-stripes .b{background:var(--blue)}
 
@@ -178,7 +188,14 @@ a.src-link:hover{text-decoration:underline}
 .q-nav button{flex:1;padding:13px;border-radius:12px;font-size:15px;font-weight:700;background:var(--card);box-shadow:0 1px 4px rgba(20,30,50,.1)}
 .q-nav .primary{background:var(--red);color:#fff}
 .q-nav button:disabled{opacity:.35;cursor:default}
-.fav-btn{position:absolute;top:16px;right:16px;font-size:22px;line-height:1;padding:6px}
+.fav-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;border:1.5px solid #c6d2e3;background:#fff;padding:0}
+.fav-btn.on{background:var(--gold);border-color:var(--gold)}
+.ts-mark{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;background:#fff}
+.ts-mark.done{background:var(--green);border-color:var(--green)}
+.ts-mark.doing{background:var(--blue);border-color:var(--blue)}
+.ts-mark.wrong{background:var(--red);border-color:var(--red)}
+.ts-mark.exam{background:#fff3cd;border-color:var(--gold)}
+.ts-mark.todo{background:#fff}
 .q-card{position:relative}
 .filter-bar{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:6px;scrollbar-width:none}
 .filter-bar::-webkit-scrollbar{display:none}
@@ -225,7 +242,7 @@ a.src-link:hover{text-decoration:underline}
 <body>
 <header>
   <div class="hd-top">
-    <div class="hd-logo">🚕</div>
+    <div class="hd-logo"><img src="images/logo-taxi.jpg" alt=""></div>
     <div>
       <div class="hd-title">的士及網約車綜合筆試</div>
       <div class="hd-sub">974 題溫習平台｜依運輸署官方教材編製</div>
@@ -351,12 +368,12 @@ function linkA(u, txt, cls){
 /* 出處卡：頁碼＋原文節錄＋PDF直達 */
 function srcCard(q){
   const s = q.src;
-  if(/自擬題/.test(s)) return `<span class="src-tag">✍️ 出處：${s}（按官方地方表及道路網規劃，無官方原文）</span>`;
+  if(/自擬題/.test(s)) return `<span class="src-tag">出處：${s}（按官方地方表及道路網規劃，無官方原文）</span>`;
   const u = srcUrl(s);
   let links = '';
-  if(u) links += linkA(u, '📄 翻開原文 PDF');
+  if(u) links += linkA(u, '翻開原文 PDF');
   const ex = q.ex ? `<div class="src-ex">${q.ex}</div>` : '';
-  return `<div class="src-card"><div class="src-head"><span>📖 出處：${srcLabel(s)}</span><span class="src-links">${links}</span></div>${ex}</div>`;
+  return `<div class="src-card"><div class="src-head"><span>出處：${srcLabel(s)}</span><span class="src-links">${links}</span></div>${ex}</div>`;
 }
 const store = {
   get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch(e){ return d } },
@@ -378,12 +395,14 @@ function goBack(){
   if(lastView === 'plan') { showPlan(); return; }       // 練習/測試（由計劃入）→ 計劃頁
   goHome();                                              // 其餘 → 主頁
 }
+function setPhotoView(v){ document.body.className = v ? ('view-' + v) : ''; }
 const timerPill = document.getElementById('timerPill');
 
 /* ============ 主頁 ============ */
 function goHome(){
   stopTimer();
   lastView = 'home'; curView = 'home';
+  setPhotoView('home');
   hdBack.classList.add('hidden');
   timerPill.classList.add('hidden');
   const answered = Object.keys(hist).length;
@@ -391,7 +410,7 @@ function goHome(){
   const rate = answered ? Math.round(correct/answered*100) : 0;
   app.innerHTML = `
     <div class="exam-card">
-      <h2>📋 考試結構（2026年8月3日起生效）</h2>
+      <h2>考試結構（2026年8月3日起生效）</h2>
       <div class="exam-grid">
         <div class="exam-cell"><div class="k">甲部（30題）</div><div class="v">答對 25 題 <small>合格</small></div></div>
         <div class="exam-cell"><div class="k">乙部（35題）</div><div class="v">答對 30 題 <small>合格</small></div></div>
@@ -402,43 +421,43 @@ function goHome(){
     <div class="stats-row">
       <div class="stat-box"><div class="n">${answered}</div><div class="t">已答題數</div></div>
       <div class="stat-box"><div class="n" style="color:var(--green)">${rate}%</div><div class="t">正確率</div></div>
-      <div class="stat-box stat-link" onclick="startPractice('wrong')" title="撳入去即刻重做錯題"><div class="n" style="color:var(--red)">${wrongIds.size}</div><div class="t">錯題 🔗</div></div>
-      <div class="stat-box stat-link" onclick="startPractice('fav')" title="撳入去重溫收藏題"><div class="n" style="color:var(--gold)">${favIds.size}</div><div class="t">收藏 🔗</div></div>
+      <div class="stat-box stat-link" onclick="startPractice('wrong')" title="撳入去即刻重做錯題"><div class="n" style="color:var(--red)">${wrongIds.size}</div><div class="t">錯題</div></div>
+      <div class="stat-box stat-link" onclick="startPractice('fav')" title="撳入去重溫收藏題"><div class="n" style="color:var(--gold)">${favIds.size}</div><div class="t">收藏</div></div>
     </div>
     <div class="mode-grid">
       <button class="mode-btn plan" onclick="showPlan()">
-        <div class="mt">📅 7日合格計劃</div><div class="md">跟住日程做晒 974 題＋錯題清零＋模擬試達標｜整體進度 ${answered ? Math.round(answered/QUESTIONS.length*100) : 0}%｜徽章 🏅×${PLAN.filter(d => d.tasks.every(tk => { const s = taskStat(tk); return s.done === s.total; })).length}/7</div>
+        <div class="mt">7日合格計劃</div><div class="md">跟住日程做晒 974 題＋錯題清零＋模擬試達標｜整體進度 ${answered ? Math.round(answered/QUESTIONS.length*100) : 0}%｜徽章 ${PLAN.filter(d => d.tasks.every(tk => { const s = taskStat(tk); return s.done === s.total; })).length}/7</div>
       </button>
       <button class="mode-btn" onclick="startPractice('all')">
-        <div class="mt">📖 隨機練習</div><div class="md">全部 974 題隨機次序操練，可篩選部分／題型</div>
+        <div class="mt">隨機練習</div><div class="md">全部 974 題隨機次序操練，可篩選部分／題型</div>
       </button>
       <button class="mode-btn green" onclick="startPractice('甲部')">
-        <div class="mt">🅰️ 甲部專練</div><div class="md">載客服務 150・地方 255（四選一，隨機次序）</div>
+        <div class="mt">甲部專練</div><div class="md">載客服務 150・地方 255（四選一，隨機次序）</div>
       </button>
       <button class="mode-btn orange" onclick="startPractice('路線')">
-        <div class="mt">🗺️ 路線專練</div><div class="md">最直接路線 157 題（三選一，隨機次序）</div>
+        <div class="mt">路線專練</div><div class="md">最直接路線 157 題（三選一，隨機次序）</div>
       </button>
       <button class="mode-btn blue" onclick="startPractice('乙部')">
-        <div class="mt">🅱️ 乙部專練</div><div class="md">守則 300＋標誌圖片 112（三選一，隨機次序）</div>
+        <div class="mt">乙部專練</div><div class="md">守則 300＋標誌圖片 112（三選一，隨機次序）</div>
       </button>
       <button class="mode-btn" style="border-color:#8e44ad;color:#8e44ad" onclick="startPractice('圖片')">
         <div class="mt">🚸 標誌圖片題</div><div class="md">112 個官方守則標誌，睇圖揀意思（三選一）</div>
       </button>
       <button class="mode-btn gold" onclick="showExamIntro()">
-        <div class="mt">⏱️ 模擬測試</div><div class="md">仿真組卷：甲 30（20+9+1）＋乙 35，45 分鐘計時</div>
+        <div class="mt">模擬測試</div><div class="md">仿真組卷：甲 30（20+9+1）＋乙 35，45 分鐘計時</div>
       </button>
       <button class="mode-btn purple" onclick="startPractice('wrong')">
-        <div class="mt">❌ 錯題本</div><div class="md">${wrongIds.size} 題待重溫，答啱自動移除</div>
+        <div class="mt">錯題本</div><div class="md">${wrongIds.size} 題待重溫，答啱自動移除</div>
       </button>
       <button class="mode-btn gray" onclick="startPractice('fav')">
-        <div class="mt">⭐ 收藏題</div><div class="md">${favIds.size} 題已標記</div>
+        <div class="mt">收藏題</div><div class="md">${favIds.size} 題已標記</div>
       </button>
     </div>
     <div class="booklet-bar">
-      <div class="bt">📚 官方教材（已內置，點擊即開）</div>
-      <a href="${BOOKLET_URL}">📕 《的士及網約車營運小冊子》PDF（甲部教材）</a>
-      <a href="${RUC_URL}">📘 《道路使用者守則》PDF（乙部教材）</a>
-      <a href="${TD_TEST_URL}" target="_blank" rel="noopener">🌐 運輸署「的士及網約車綜合筆試」專頁（報考詳情＋官方樣本題）</a>
+      <div class="bt">官方教材（已內置，點擊即開）</div>
+      <a href="${BOOKLET_URL}">《的士及網約車營運小冊子》PDF（甲部教材）</a>
+      <a href="${RUC_URL}">《道路使用者守則》PDF（乙部教材）</a>
+      <a href="${TD_TEST_URL}" target="_blank" rel="noopener">運輸署「的士及網約車綜合筆試」專頁（報考詳情＋官方樣本題）</a>
     </div>
     ${adSlot(window.ADSENSE && ADSENSE.slotHome)}
     <div class="foot-note">
@@ -447,7 +466,7 @@ function goHome(){
       <b>免責聲明</b>：本平台為考生自發製作嘅免費溫習工具，與運輸署或任何政府部門無任何關聯；<br>
       題目及出處內容節錄自上述公開教材，版權屬香港特別行政區政府。如有錯漏，一切以官方原文為準。<br>
       <details class="terms">
-        <summary>📜 免責聲明及使用條款（點擊展開）</summary>
+        <summary>免責聲明及使用條款（點擊展開）</summary>
         <ol>
           <li>本平台由考生自發製作，屬免費、非商業嘅溫習工具，與運輸署或任何政府部門無任何關聯，亦未獲任何官方認可或授權。</li>
           <li>題目及出處內容節錄自運輸署公開教材《的士及網約車營運小冊子》及《道路使用者守則》，有關內容之版權屬香港特別行政區政府，本平台僅作非商業學習用途。</li>
@@ -460,7 +479,7 @@ function goHome(){
         </ol>
       </details>
       <a href="privacy.html" style="color:var(--sub);font-size:12px;margin-right:12px">私隱政策</a>
-      <button class="danger-link" onclick="resetAll()">🗑 清除全部練習記錄</button>
+      <button class="danger-link" onclick="resetAll()">清除全部練習記錄</button>
     </div>`;
   fillAds();
 }
