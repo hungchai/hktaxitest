@@ -703,8 +703,13 @@ function navPractice(d){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function toggleFav(id, btn){
-  if(favIds.has(id)){ favIds.delete(id); btn.textContent = '☆'; }
-  else { favIds.add(id); btn.textContent = '⭐'; }
+  if(favIds.has(id)){
+    favIds.delete(id);
+    if(btn){ btn.textContent = btn.classList.contains('fav-btn') ? '' : '☆'; btn.classList.remove('on'); }
+  } else {
+    favIds.add(id);
+    if(btn){ if(!btn.classList.contains('fav-btn')) btn.textContent = '⭐'; btn.classList.add('on'); }
+  }
   store.set(LS.fav, [...favIds]);
 }
 
@@ -813,10 +818,12 @@ function submitExam(timeout){
   const pass = aOk >= 25 && bOk >= 30;
   exams.push({ t: Date.now(), a: aOk, b: bOk, pass });
   store.set(LS.exam, exams);
+  setPhotoView('result');
+  const wrongN = examWrongIdx().length;
   app.innerHTML = `
     <div class="result-hero ${pass?'pass':'fail'}">
-      <div class="big">${pass ? '🎉 合格' : '💪 不合格'}</div>
-      <div class="small">${timeout ? '時間到，已自動交卷｜' : ''}${pass ? '兩部均達標，繼續保持！' : '任何一部唔達標都係不合格，再努力！'}</div>
+      <div class="big">${pass ? '合格' : '不合格'}</div>
+      <div class="small">${timeout ? '時間到，已自動交卷｜' : ''}${pass ? '兩部均達標，繼續保持！' : '任何一部唔達標都係不合格，再努力！'}｜錯 ${wrongN} 題</div>
     </div>
     <div class="part-score">
       <div>
@@ -831,14 +838,70 @@ function submitExam(timeout){
       </div>
     </div>
     <div class="mode-grid" style="margin-bottom:18px">
-      <button class="mode-btn" onclick="reviewExam(0)"><div class="mt">📝 檢討答案</div><div class="md">逐題睇返正確答案同出處</div></button>
-      <button class="mode-btn" style="border-color:#8e44ad;color:#8e44ad" onclick="startPractice('圖片')">
-        <div class="mt">🚸 標誌圖片題</div><div class="md">112 個官方守則標誌，睇圖揀意思（三選一）</div>
-      </button>
-      <button class="mode-btn gold" onclick="showExamIntro()"><div class="mt">🔁 再考一次</div><div class="md">重新隨機組卷</div></button>
+      ${wrongN
+        ? `<button class="mode-btn" style="border-left-color:var(--red)" onclick="reviewExamWrong(0)"><div class="mt">睇錯題</div><div class="md">只睇今次答錯／未答嘅 ${wrongN} 題，可逐題收藏</div></button>
+           <button class="mode-btn purple" onclick="favAllWrong()"><div class="mt">收藏全部錯題</div><div class="md">一鍵加入收藏，之後主頁可重溫</div></button>`
+        : `<button class="mode-btn green" disabled style="opacity:.7"><div class="mt">全對</div><div class="md">今次冇錯題</div></button>`}
+      <button class="mode-btn" onclick="reviewExam(0)"><div class="mt">全部檢討</div><div class="md">65 題逐題睇返正確答案同出處</div></button>
+      <button class="mode-btn gold" onclick="showExamIntro()"><div class="mt">再考一次</div><div class="md">重新隨機組卷</div></button>
     </div>
     ${adSlot(window.ADSENSE && ADSENSE.slotResult)}`;
   fillAds();
+}
+function examWrongIdx(){
+  return E.list.map((q, i) => i).filter(i => E.ans[i] !== E.list[i].ans);
+}
+function favAllWrong(){
+  const wrongs = examWrongIdx();
+  if(!wrongs.length){ alert('今次冇錯題可收藏'); return; }
+  let n = 0;
+  wrongs.forEach(i => {
+    const id = E.list[i].id;
+    if(!favIds.has(id)){ favIds.add(id); n++; }
+  });
+  store.set(LS.fav, [...favIds]);
+  alert(n ? `已新收藏 ${n} 題（共 ${wrongs.length} 題錯題）` : `呢 ${wrongs.length} 題本來已經全部收藏咗`);
+}
+function reviewExamWrong(wi){
+  const wrongs = examWrongIdx();
+  if(!wrongs.length){
+    app.innerHTML = `<div class="empty-box"><div class="ic"></div>今次冇錯題<br><br>
+      <button class="hd-back" style="color:var(--ink);background:var(--line)" onclick="goHome()">返回主頁</button></div>`;
+    return;
+  }
+  if(wi < 0) wi = 0;
+  if(wi >= wrongs.length) wi = wrongs.length - 1;
+  const i = wrongs[wi];
+  const q = E.list[i];
+  const chosen = E.ans[i];
+  const ok = chosen === q.ans;
+  app.innerHTML = `
+    <div class="q-meta">
+      <span class="chip chip-a">錯題 ${wi+1}/${wrongs.length}</span>
+      <span class="chip ${q.part==='甲部'?'chip-a':'chip-b'}">${q.part} 第${i+1}題</span>
+      <span class="chip chip-cat">${q.cat}</span>
+      <div class="q-progress"><i style="width:${(wi+1)/wrongs.length*100}%"></i></div>
+    </div>
+    <div class="q-card">
+      <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
+      <div class="q-text">${q.q}</div>
+      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
+      ${q.opts.map((o, j) => `
+        <div class="opt ${j===q.ans?'correct':(j===chosen?'wrong':'dim')}" style="cursor:default">
+          <span class="ol">${'ABCD'[j]}</span><span>${o}</span>
+        </div>`).join('')}
+      <div class="explain no">
+        <b>${chosen===undefined ? '你冇答呢題' : '你揀咗 ' + 'ABCD'[chosen]}｜正確答案：${'ABCD'[q.ans]}（${q.opts[q.ans]}）</b>
+        ${srcCard(q)}
+      </div>
+    </div>
+    <div class="q-nav">
+      <button onclick="reviewExamWrong(${wi-1})" ${wi===0?'disabled':''}>← 上一錯題</button>
+      ${wi < wrongs.length-1
+        ? `<button class="primary" onclick="reviewExamWrong(${wi+1})">下一錯題 →</button>`
+        : `<button class="primary" onclick="goHome()">返回主頁</button>`}
+    </div>`;
+  window.scrollTo({top:0});
 }
 function reviewExam(i){
   const q = E.list[i];
@@ -849,9 +912,10 @@ function reviewExam(i){
       <span class="chip ${q.part==='甲部'?'chip-a':'chip-b'}">${q.part}</span>
       <span class="chip chip-cat">${q.cat}</span>
       <div class="q-progress"><i style="width:${(i+1)/E.list.length*100}%"></i></div>
-      <span class="q-num">${i+1} / 65 ${ok?'✅':'❌'}</span>
+      <span class="q-num">${i+1} / 65 ${ok?'對':'錯'}</span>
     </div>
     <div class="q-card">
+      <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
       <div class="q-text">${q.q}</div>
       ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
       ${q.opts.map((o, j) => `
@@ -859,7 +923,7 @@ function reviewExam(i){
           <span class="ol">${'ABCD'[j]}</span><span>${o}</span>
         </div>`).join('')}
       <div class="explain ${ok?'ok':'no'}">
-        <b>${ok ? '✅ 你答啱咗' : (chosen===undefined ? '⚠️ 你冇答呢題' : '❌ 你揀咗 ' + 'ABCD'[chosen])}｜正確答案：${'ABCD'[q.ans]}（${q.opts[q.ans]}）</b>
+        <b>${ok ? '你答啱咗' : (chosen===undefined ? '你冇答呢題' : '你揀咗 ' + 'ABCD'[chosen])}｜正確答案：${'ABCD'[q.ans]}（${q.opts[q.ans]}）</b>
         ${srcCard(q)}
       </div>
     </div>
