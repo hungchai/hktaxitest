@@ -192,7 +192,9 @@ a.src-link:hover{text-decoration:underline}
 .q-nav .primary{background:var(--red);color:#fff}
 .q-nav button:disabled{opacity:.35;cursor:default}
 .fav-btn{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:8px;border:1.5px solid #c6d2e3;background:#fff;padding:0}
+.fav-btn::before{content:"";display:block;width:12px;height:12px;margin:8px auto;border:2px solid #c6d2e3;border-radius:2px;transform:rotate(45deg);box-sizing:border-box}
 .fav-btn.on{background:var(--gold);border-color:var(--gold)}
+.fav-btn.on::before{background:#fff;border-color:#fff}
 .ts-mark{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);flex-shrink:0;background:#fff}
 .ts-mark.done{background:var(--green);border-color:var(--green)}
 .ts-mark.doing{background:var(--blue);border-color:var(--blue)}
@@ -654,7 +656,7 @@ function renderPractice(){
       <span class="q-num">${P.i+1} / ${P.pool.length}${histMark}</span>
     </div>
     <div class="q-card">
-      <button class="fav-btn" onclick="toggleFav(${q.id}, this)">${favIds.has(q.id) ? '⭐' : '☆'}</button>
+      <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
       <div class="q-text">${q.q}</div>
       ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
       <div id="optBox">
@@ -703,13 +705,8 @@ function navPractice(d){
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function toggleFav(id, btn){
-  if(favIds.has(id)){
-    favIds.delete(id);
-    if(btn){ btn.textContent = btn.classList.contains('fav-btn') ? '' : '☆'; btn.classList.remove('on'); }
-  } else {
-    favIds.add(id);
-    if(btn){ if(!btn.classList.contains('fav-btn')) btn.textContent = '⭐'; btn.classList.add('on'); }
-  }
+  if(favIds.has(id)){ favIds.delete(id); if(btn) btn.classList.remove('on'); }
+  else { favIds.add(id); if(btn) btn.classList.add('on'); }
   store.set(LS.fav, [...favIds]);
 }
 
