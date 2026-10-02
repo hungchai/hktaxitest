@@ -253,8 +253,8 @@ a.src-link:hover{text-decoration:underline}
   <div class="hd-top">
     <div class="hd-logo"><img src="images/logo-taxi.jpg" alt=""></div>
     <div>
-      <div class="hd-title">的士及網約車綜合筆試</div>
-      <div class="hd-sub">842 題溫習平台｜依運輸署官方教材編製</div>
+      <div class="hd-title" id="hdTitle">的士及網約車綜合筆試</div>
+      <div class="hd-sub" id="hdSub">842 題溫習平台｜依運輸署官方教材編製</div>
     </div>
     <button class="hd-back hidden" id="hdBack" onclick="goBack()">← 返回</button>
     <button class="hd-back" id="langBtn" onclick="toggleLang()" style="position:relative;right:auto;margin-left:8px">EN</button>
@@ -363,11 +363,15 @@ function srcUrl(s){
 /* 出處字串 → 人性化標籤 */
 function srcLabel(s){
   let m;
-  if(/附錄二/.test(s)) return '《的士及網約車營運小冊子》附錄二「地方及路線試題表」（第15頁起）';
-  if(/附錄一/.test(s)) return '《的士及網約車營運小冊子》第11頁・附錄一「的士司機違例記分制」';
-  if(m = s.match(/守則P\.([\d, ]+)/)) return '第' + m[1].trim() + '頁《道路使用者守則》';
-  if(m = s.match(/小冊子P\.([\d\-]+)/)) return '第' + m[1] + '頁《的士及網約車營運小冊子》';
-  if(/運輸署官方模擬試題/.test(s)) return '運輸署官方模擬試題';
+  const en = window.LANG === 'en';
+  if(/附錄二/.test(s)) return en ? 'Operation Booklet Appendix II "Places & Routes" (from p.13)' : '《的士及網約車營運小冊子》附錄二「地方及路線試題表」（第15頁起）';
+  if(/附錄一/.test(s)) return en ? 'Operation Booklet Appendix I "Taxi Driver Offence Points System" (p.9)' : '《的士及網約車營運小冊子》第11頁・附錄一「的士司機違例記分制」';
+  if(m = s.match(/守則P\.([\d, ]+)/)) return en ? "Road Users' Code p." + m[1].trim() : '第' + m[1].trim() + '頁《道路使用者守則》';
+  if(m = s.match(/小冊子P\.([\d\-]+)/)) return en ? 'Operation Booklet p.' + m[1] : '第' + m[1] + '頁《的士及網約車營運小冊子》';
+  if(/運輸署官方模擬試題/.test(s)) return en ? 'TD official sample questions' : '運輸署官方模擬試題';
+  if(/RUC p\./.test(s)) return s.replace('RUC p.', "Road Users' Code p.");
+  if(/Booklet Appendix II/.test(s)) return 'Operation Booklet Appendix II (Places & Routes)';
+  if(/TD Official Sample/.test(s)) return 'TD official sample questions';
   return s;
 }
 /* 本地 PDF 用同一分頁開（避免彈窗被擋），外部網頁開新分頁 */
@@ -378,12 +382,12 @@ function linkA(u, txt, cls){
 /* 出處卡：頁碼＋原文節錄＋PDF直達 */
 function srcCard(q){
   const s = q.src;
-  if(/自擬題/.test(s)) return `<span class="src-tag">出處：${s}（按官方地方表及道路網規劃，無官方原文）</span>`;
+  if(/自擬題/.test(s)) return `<span class="src-tag">${uiT('出處：','Source: ')}${s}</span>`;
   const u = srcUrl(s);
   let links = '';
-  if(u) links += linkA(u, '翻開原文 PDF');
+  if(u) links += linkA(u, uiT('翻開原文 PDF','Open source PDF'));
   const ex = q.ex ? `<div class="src-ex">${q.ex}</div>` : '';
-  return `<div class="src-card"><div class="src-head"><span>出處：${srcLabel(s)}</span><span class="src-links">${links}</span></div>${ex}</div>`;
+  return `<div class="src-card"><div class="src-head"><span>${uiT('出處：','Source: ')}${srcLabel(s)}</span><span class="src-links">${links}</span></div>${ex}</div>`;
 }
 const store = {
   get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d }catch(e){ return d } },
@@ -410,6 +414,22 @@ function applyPdfLang(){
   });
 }
 function uiT(zh, en){ return window.LANG === 'en' ? en : zh; }
+const CAT_EN = {
+  '載客服務知識': 'Passenger Service Knowledge',
+  '地方試題': 'Places',
+  '路線試題': 'Routes',
+  '道路使用者守則': "Road Users' Code",
+  '交通標誌（圖片題）': 'Traffic Signs (Images)'
+};
+const PLAN_EN = {
+  1: 'Part A: Passenger service (1) + places basics',
+  2: 'Part A: Passenger service (2) + places',
+  3: 'Part A: Places + routes',
+  4: 'Part B: Road Users Code (1)',
+  5: 'Part B: Road Users Code (2) + signs',
+  6: 'Part B: Signs + weak areas',
+  7: 'Mock exam + final review'
+};
 async function toggleLang(){
   const btn = document.getElementById('langBtn');
   btn.disabled = true;
@@ -426,6 +446,8 @@ async function toggleLang(){
       QUESTIONS.forEach(q => byId[q.id] = q);
       window.LANG = 'en';
       btn.textContent = '中';
+      document.getElementById('hdTitle').textContent = 'Taxi and Ride-hailing Combined Written Test';
+      document.getElementById('hdSub').textContent = '842-question study platform | based on official TD materials';
       applyPdfLang();
       stopTimer();
       goHome();
@@ -521,65 +543,65 @@ function goHome(){
   const rate = answered ? Math.round(correct/answered*100) : 0;
   app.innerHTML = `
     <div class="exam-card">
-      <h2>考試結構（2026年8月3日起生效）</h2>
+      <h2>${uiT('考試結構（2026年8月3日起生效）','Exam Structure (effective 3 Aug 2026)')}</h2>
       <div class="exam-grid">
-        <div class="exam-cell"><div class="k">甲部（30題）</div><div class="v">答對 25 題 <small>合格</small></div></div>
-        <div class="exam-cell"><div class="k">乙部（35題）</div><div class="v">答對 30 題 <small>合格</small></div></div>
-        <div class="exam-cell"><div class="k">考試時間</div><div class="v">45 分鐘</div></div>
-        <div class="exam-cell"><div class="k">計分方式</div><div class="v">兩部獨立 <small>一部唔合格＝肥佬</small></div></div>
+        <div class="exam-cell"><div class="k">${uiT('甲部（30題）','Part A (30 questions)')}</div><div class="v">${uiT('答對 25 題','25 or more correct')} <small>${uiT('合格','to pass')}</small></div></div>
+        <div class="exam-cell"><div class="k">${uiT('乙部（35題）','Part B (35 questions)')}</div><div class="v">${uiT('答對 30 題','30 or more correct')} <small>${uiT('合格','to pass')}</small></div></div>
+        <div class="exam-cell"><div class="k">${uiT('考試時間','Duration')}</div><div class="v">${uiT('45 分鐘','45 minutes')}</div></div>
+        <div class="exam-cell"><div class="k">${uiT('計分方式','Scoring')}</div><div class="v">${uiT('兩部獨立','Two parts independent')} <small>${uiT('一部唔合格＝肥佬','fail either = fail all')}</small></div></div>
       </div>
     </div>
     <div class="stats-row">
-      <div class="stat-box"><div class="n">${answered}</div><div class="t">已答題數</div></div>
-      <div class="stat-box"><div class="n" style="color:var(--green)">${rate}%</div><div class="t">正確率</div></div>
-      <div class="stat-box stat-link" onclick="startPractice('wrong')" title="撳入去即刻重做錯題"><div class="n" style="color:var(--red)">${wrongIds.size}</div><div class="t">錯題</div></div>
-      <div class="stat-box stat-link" onclick="startPractice('fav')" title="撳入去重溫收藏題"><div class="n" style="color:var(--gold)">${favIds.size}</div><div class="t">收藏</div></div>
+      <div class="stat-box"><div class="n">${answered}</div><div class="t">${uiT('已答題數','Answered')}</div></div>
+      <div class="stat-box"><div class="n" style="color:var(--green)">${rate}%</div><div class="t">${uiT('正確率','Accuracy')}</div></div>
+      <div class="stat-box stat-link" onclick="startPractice('wrong')" title="撳入去即刻重做錯題"><div class="n" style="color:var(--red)">${wrongIds.size}</div><div class="t">${uiT('錯題','Wrong')}</div></div>
+      <div class="stat-box stat-link" onclick="startPractice('fav')" title="撳入去重溫收藏題"><div class="n" style="color:var(--gold)">${favIds.size}</div><div class="t">${uiT('收藏','Saved')}</div></div>
     </div>
     <div class="mode-grid">
       <button class="mode-btn plan" onclick="showPlan()">
-        <div class="mt">7日合格計劃</div><div class="md">跟住日程做晒 842 題＋錯題清零＋模擬試達標｜整體進度 ${answered ? Math.round(answered/QUESTIONS.length*100) : 0}%｜徽章 ${PLAN.filter(d => d.tasks.every(tk => { const s = taskStat(tk); return s.done === s.total; })).length}/7</div>
+        <div class="mt">${uiT('7日合格計劃','7-Day Pass Plan')}</div><div class="md">${uiT('跟住日程做晒 842 題＋錯題清零＋模擬試達標','Finish all 842 questions on schedule + clear wrong answers + pass the mock exam')}｜${uiT('整體進度','Overall progress')} ${answered ? Math.round(answered/QUESTIONS.length*100) : 0}%｜${uiT('徽章','Badges')} ${PLAN.filter(d => d.tasks.every(tk => { const s = taskStat(tk); return s.done === s.total; })).length}/7</div>
       </button>
       <button class="mode-btn" onclick="startPractice('all')">
-        <div class="mt">隨機練習</div><div class="md">全部 842 題隨機次序操練，可篩選部分／題型</div>
+        <div class="mt">${uiT('隨機練習','Random Practice')}</div><div class="md">${uiT('全部 842 題隨機次序操練，可篩選部分／題型','All 842 questions in random order, filterable by part/category')}</div>
       </button>
       <button class="mode-btn green" onclick="startPractice('甲部')">
-        <div class="mt">甲部專練</div><div class="md">載客服務 150・地方 257（四選一，隨機次序）</div>
+        <div class="mt">${uiT('甲部專練','Part A Practice')}</div><div class="md">${uiT('載客服務 150・地方 257（四選一，隨機次序）','Passenger service 150 - Places 257 (1 of 4, random order)')}</div>
       </button>
       <button class="mode-btn orange" onclick="startPractice('路線')">
-        <div class="mt">路線專練</div><div class="md">官方附錄二 18 條＋官方模擬 2 條（共 20 題，三選一）</div>
+        <div class="mt">${uiT('路線專練','Route Practice')}</div><div class="md">${uiT('官方附錄二 18 條＋官方模擬 2 條（共 20 題，三選一）','Official Appendix II 18 + official samples 2 (20 questions, 1 of 3)')}</div>
       </button>
       <button class="mode-btn blue" onclick="startPractice('乙部')">
-        <div class="mt">乙部專練</div><div class="md">守則 300＋標誌圖片 112（三選一，隨機次序）</div>
+        <div class="mt">${uiT('乙部專練','Part B Practice')}</div><div class="md">${uiT('守則 300＋標誌圖片 112（三選一，隨機次序）','Code 300 - Sign images 112 (1 of 3, random order)')}</div>
       </button>
       <button class="mode-btn" style="border-color:#8e44ad;color:#8e44ad" onclick="startPractice('圖片')">
-        <div class="mt">🚸 標誌圖片題</div><div class="md">112 個官方守則標誌，睇圖揀意思（三選一）</div>
+        <div class="mt">${uiT('🚸 標誌圖片題','Traffic Sign Images')}</div><div class="md">${uiT('112 個官方守則標誌，睇圖揀意思（三選一）','112 official Code signs, pick the meaning (1 of 3)')}</div>
       </button>
       <button class="mode-btn gold" onclick="showExamIntro()">
-        <div class="mt">模擬測試</div><div class="md">仿真組卷：甲 30（20+9+1）＋乙 35，45 分鐘計時</div>
+        <div class="mt">${uiT('模擬測試','Mock Exam')}</div><div class="md">${uiT('仿真組卷：甲 30（20+9+1）＋乙 35，45 分鐘計時','Realistic paper: A 30 (20+9+1) + B 35, timed 45 minutes')}</div>
       </button>
       <button class="mode-btn purple" onclick="startPractice('wrong')">
-        <div class="mt">錯題本</div><div class="md">${wrongIds.size} 題待重溫，答啱自動移除</div>
+        <div class="mt">${uiT('錯題本','Wrong Answer Book')}</div><div class="md">${wrongIds.size} ${uiT('題待重溫，答啱自動移除','questions to review; removed once answered correctly')}</div>
       </button>
       <button class="mode-btn gray" onclick="startPractice('fav')">
-        <div class="mt">收藏題</div><div class="md">${favIds.size} 題已標記</div>
+        <div class="mt">${uiT('收藏題','Saved Questions')}</div><div class="md">${favIds.size} ${uiT('題已標記','questions marked')}</div>
       </button>
     </div>
     <div class="booklet-bar">
-      <div class="bt">官方教材（已內置，點擊即開）</div>
-      <a href="${BOOKLET_URL}">《的士及網約車營運小冊子》PDF（甲部教材）</a>
-      <a href="${RUC_URL}">《道路使用者守則》PDF（乙部教材）</a>
-      <a href="${TD_TEST_URL}" target="_blank" rel="noopener">運輸署「的士及網約車綜合筆試」專頁（報考詳情＋官方樣本題）</a>
-      <a href="${TD_SAMPLE_URL}" target="_blank" rel="noopener">運輸署「的士筆試模擬試題」頁（舊制樣題；路線／地方樣題仍可參考）</a>
+      <div class="bt">${uiT('官方教材（已內置，點擊即開）','Official Study Materials (built in, tap to open)')}</div>
+      <a href="${BOOKLET_URL}">${uiT('《的士及網約車營運小冊子》PDF（甲部教材）','Taxi and Ride-hailing Vehicle Operation Booklet PDF (Part A)')}</a>
+      <a href="${RUC_URL}">${uiT('《道路使用者守則》PDF（乙部教材）',"Road Users' Code PDF (Part B)")}</a>
+      <a href="${TD_TEST_URL}" target="_blank" rel="noopener">${uiT('運輸署「的士及網約車綜合筆試」專頁（報考詳情＋官方樣本題）','TD Combined Written Test page (details + official sample questions)')}</a>
+      <a href="${TD_SAMPLE_URL}" target="_blank" rel="noopener">${uiT('運輸署「的士筆試模擬試題」頁（舊制樣題；路線／地方樣題仍可參考）','TD sample questions page (old scheme; route/place samples still useful)')}</a>
     </div>
     <div class="mode-grid" style="margin-bottom:16px">
       <button class="mode-btn gold" onclick="exportProgress()">
-        <div class="mt">備份進度</div><div class="md">產生備份碼，貼去 iCloud 備忘錄／電郵保存</div>
+        <div class="mt">${uiT('備份進度','Backup Progress')}</div><div class="md">${uiT('產生備份碼，貼去 iCloud 備忘錄／電郵保存','Generate a backup code to paste into iCloud Notes / email')}</div>
       </button>
       <button class="mode-btn gray" onclick="importProgress()">
-        <div class="mt">還原進度</div><div class="md">換機或清除資料後，貼備份碼回復全部記錄</div>
+        <div class="mt">${uiT('還原進度','Restore Progress')}</div><div class="md">${uiT('換機或清除資料後，貼備份碼回復全部記錄','After switching device or clearing data, paste the code to restore')}</div>
       </button>
       <button class="mode-btn blue" onclick="location.href='guide.html'">
-        <div class="mt">考試全攻略</div><div class="md">格式・合格分數・費用・申請資格・應試技巧一覽</div>
+        <div class="mt">${uiT('考試全攻略','Exam Guide')}</div><div class="md">${uiT('格式・合格分數・費用・申請資格・應試技巧一覽','Format, pass marks, fees, eligibility and exam tips')}</div>
       </button>
     </div>
     ${adSlot(window.ADSENSE && ADSENSE.slotHome)}
@@ -647,27 +669,27 @@ function showPlan(){
   const badgeN = dayDoneArr.filter(Boolean).length;
   app.innerHTML = `
     <div class="exam-card">
-      <h2>📅 7日合格計劃</h2>
+      <h2>📅 ${uiT('7日合格計劃','7-Day Pass Plan')}</h2>
       <div style="font-size:13px;color:var(--sub);line-height:1.6">
-        7 日覆蓋全部 842 題＋錯題清零＋模擬試兩部達標，跟住做實穩過。<br>
-        進度會自動儲存喺你瀏覽器，隨時閂 app 聽日再繼續。
+        ${uiT('7 日覆蓋全部 842 題＋錯題清零＋模擬試兩部達標，跟住做實穩過。','Cover all 842 questions in 7 days + clear wrong answers + pass both mock exam parts. Follow it and you will pass.')}<br>
+        ${uiT('進度會自動儲存喺你瀏覽器，隨時閂 app 聽日再繼續。','Progress saves automatically in your browser; close anytime and continue tomorrow.')}
       </div>
       <div class="pbar"><i style="width:${pct}%"></i></div>
-      <div style="font-size:12px;color:var(--sub)">整體進度：${doneAll}/${totalAll} 題（${pct}%）｜模擬試次數：${exams.length}</div>
+      <div style="font-size:12px;color:var(--sub)">${uiT('整體進度','Overall')}: ${doneAll}/${totalAll} (${pct}%)｜${uiT('模擬試次數','Mock exams taken')}: ${exams.length}</div>
       <div style="margin-top:8px">
-        ${PLAN.map((d, i) => `<span class="day-badge ${dayDoneArr[i] ? 'on' : ''}">${dayDoneArr[i] ? '🏅' : '▫️'} 第${d.day}日</span>`).join('')}
+        ${PLAN.map((d, i) => `<span class="day-badge ${dayDoneArr[i] ? 'on' : ''}">${dayDoneArr[i] ? '🏅' : '▫️'} ${uiT('第','Day ')}${d.day}${uiT('日','')}</span>`).join('')}
       </div>
-      ${badgeN === 7 ? '<div class="trophy">🏆 7 日徽章集齊！你已準備好，去考試啦！</div>' : (badgeN > 0 ? `<div class="trophy">已集徽章 🏅×${badgeN}／7，繼續加油！</div>` : '')}
+      ${badgeN === 7 ? `<div class="trophy">🏆 ${uiT('7 日徽章集齊！你已準備好，去考試啦！','All 7 badges collected! You are ready — go take the exam!')}</div>` : (badgeN > 0 ? `<div class="trophy">${uiT('已集徽章','Badges')} 🏅×${badgeN}/7, ${uiT('繼續加油！','keep going!')}</div>` : '')}
     </div>
     ${PLAN.map((d, di) => {
       const stats = d.tasks.map(taskStat);
       const allDone = stats.every(s => s.done === s.total);
       const started = d.tasks.some((tk, ti) => (!tk.type && stats[ti].done > 0) || (tk.type === 'exam' && exams.length > 0));
       const cls = allDone ? 'done' : (started ? 'doing' : '');
-      const status = allDone ? '✅ 完成' : (started ? '🔥 進行中' : '未開始');
+      const status = allDone ? `✅ ${uiT('完成','Done')}` : (started ? `🔥 ${uiT('進行中','In progress')}` : uiT('未開始','Not started'));
       return `
       <div class="plan-day ${cls}">
-        <h3>第 ${d.day} 日｜${d.title}</h3>
+        <h3>${uiT('第','Day ')} ${d.day} ${uiT('日','')}｜${window.LANG === 'en' ? (PLAN_EN[d.day-1] || d.title) : d.title}</h3>
         <div class="tip">${d.tip}｜${status}</div>
         ${d.tasks.map((tk, ti) => {
           const s = stats[ti];
@@ -689,7 +711,7 @@ function startPlanTask(di, ti){
   const pool = prioritize(taskQs(tk));
   if(!pool.length) return;
   P = { mode:'plan', pool, i:0, answered:false, catFilter:null,
-        planLabel:`📅 第${PLAN[di].day}日｜${tk.label}`, planDay: di, planTask: ti };
+        planLabel:`📅 ${uiT('第','Day ')}${PLAN[di].day}${uiT('日','')}｜${window.LANG === 'en' ? (PLAN_EN[PLAN[di].day-1] || tk.label) : tk.label}`, planDay: di, planTask: ti };
   curView = 'practice';
   hdBack.classList.remove('hidden');
   renderPractice();
@@ -747,9 +769,12 @@ function practiceFilters(){
     ? ['載客服務知識','地方試題','路線試題','道路使用者守則','交通標誌（圖片題）']
     : (P.mode === '甲部' ? ['載客服務知識','地方試題'] : []);
   if(!cats.length) return '';
-  const label = c => c === '道路使用者守則' ? '守則（乙部）' : (c === '交通標誌（圖片題）' ? '標誌圖片（乙部）' : c);
+  const label = c => {
+    if(window.LANG !== 'en') return (c === '道路使用者守則' ? '守則（乙部）' : (c === '交通標誌（圖片題）' ? '標誌圖片（乙部）' : c));
+    return ({'載客服務知識':'Passenger service','地方試題':'Places','路線試題':'Routes','道路使用者守則':"Code (Part B)",'交通標誌（圖片題）':'Signs (Part B)'})[c] || c;
+  };
   return `<div class="filter-bar">
-    <button class="f-chip ${!P.catFilter?'on':''}" onclick="startPractice('${P.mode}')">全部</button>
+    <button class="f-chip ${!P.catFilter?'on':''}" onclick="startPractice('${P.mode}')">${uiT('全部','All')}</button>
     ${cats.map(c => `<button class="f-chip ${P.catFilter===c?'on':''}" onclick="startPractice('${P.mode}','${c}')">${label(c)}</button>`).join('')}
   </div>`;
 }
@@ -760,18 +785,18 @@ function renderPractice(){
   const planDone = P.mode === 'plan' ? P.pool.filter(x => hist[x.id] !== undefined).length : 0;
   const planWrong = P.mode === 'plan' ? P.pool.filter(x => hist[x.id] === false).length : 0;
   app.innerHTML = `
-    ${P.planLabel ? `<div class="plan-tag">${P.planLabel}｜已完成 ${planDone}/${P.pool.length}${planWrong ? `・<span style="color:var(--red)">錯 ${planWrong} 題</span>` : ''}</div>` : ''}
+    ${P.planLabel ? `<div class="plan-tag">${P.planLabel}｜${uiT('已完成','Done')} ${planDone}/${P.pool.length}${planWrong ? `・<span style="color:var(--red)">${uiT('錯','wrong')} ${planWrong}</span>` : ''}</div>` : ''}
     ${practiceFilters()}
     <div class="q-meta">
-      <span class="chip ${partCls}">${q.part}</span>
-      <span class="chip chip-cat">${q.cat}</span>
+      <span class="chip ${partCls}">${q.part === '甲部' ? uiT('甲部','Part A') : uiT('乙部','Part B')}</span>
+      <span class="chip chip-cat">${uiT(q.cat, CAT_EN[q.cat] || q.cat)}</span>
       <div class="q-progress"><i style="width:${(P.i+1)/P.pool.length*100}%"></i></div>
       <span class="q-num">${P.i+1} / ${P.pool.length}${histMark}</span>
     </div>
     <div class="q-card">
       <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
       <div class="q-text">${q.q}</div>
-      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
+      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="${uiT('交通標誌','traffic sign')}" onclick="window.open(this.src)">` : ''}
       <div id="optBox">
         ${q.opts.map((o, i) => `
           <button class="opt" data-i="${i}" onclick="answerPractice(${i})">
@@ -781,8 +806,8 @@ function renderPractice(){
       <div id="explainBox"></div>
     </div>
     <div class="q-nav">
-      <button onclick="navPractice(-1)" ${P.i===0?'disabled':''}>← 上一題</button>
-      <button class="primary" onclick="navPractice(1)" ${P.i===P.pool.length-1?'disabled':''}>下一題 →</button>
+      <button onclick="navPractice(-1)" ${P.i===0?'disabled':''}>← ${uiT('上一題','Prev')}</button>
+      <button class="primary" onclick="navPractice(1)" ${P.i===P.pool.length-1?'disabled':''}>${uiT('下一題','Next')} →</button>
     </div>`;
   P.answered = false;
 }
@@ -802,8 +827,8 @@ function answerPractice(i){
   });
   document.getElementById('explainBox').innerHTML = `
     <div class="explain ${ok?'ok':'no'}">
-      <b>${ok ? '✅ 答啱！' : '❌ 答錯！正確答案：' + 'ABCD'[q.ans] + '（' + q.opts[q.ans] + '）'}</b>
-      ${ok ? '正確答案：' + 'ABCD'[q.ans] + '（' + q.opts[q.ans] + '）' : '已加入錯題本，答啱後會自動移除。'}
+      <b>${ok ? uiT('✅ 答啱！','Correct!') : '❌ ' + uiT('答錯！正確答案：','Wrong! Correct answer: ') + 'ABCD'[q.ans] + ' (' + q.opts[q.ans] + ')'}</b>
+      ${ok ? uiT('正確答案：','Correct answer: ') + 'ABCD'[q.ans] + ' (' + q.opts[q.ans] + ')' : uiT('已加入錯題本，答啱後會自動移除。','Added to the Wrong Answer Book; removed once answered correctly.')}
       <br>${srcCard(q)}
     </div>`
     // 計劃任務：全部題目已做 → 顯示完成橫額
@@ -830,15 +855,15 @@ function showExamIntro(){
   hdBack.classList.remove('hidden');
   app.innerHTML = `
     <div class="exam-info">
-      <h2>⏱️ 模擬測試（仿真組卷）</h2>
+      <h2>⏱️ ${uiT('模擬測試（仿真組卷）','Mock Exam (realistic paper)')}</h2>
       <ul>
-        <li>甲部 30 題：載客服務 20 題（四選一）＋地方 9 題（四選一）＋路線 1 題（三選一）</li>
-        <li>乙部 35 題：道路使用者守則（三選一）</li>
-        <li>限時 45 分鐘，中途唔會顯示答案</li>
-        <li>合格標準：甲部答對 ≥25 題 <b>及</b> 乙部答對 ≥30 題（兩部獨立計分）</li>
-        <li>題目由 842 題題庫隨機抽取</li>
+        <li>${uiT('甲部 30 題：載客服務 20 題（四選一）＋地方 9 題（四選一）＋路線 1 題（三選一）','Part A 30: passenger service 20 (1 of 4) + places 9 (1 of 4) + routes 1 (1 of 3)')}</li>
+        <li>${uiT('乙部 35 題：道路使用者守則（三選一）','Part B 35: Road Users\u2019 Code (1 of 3)')}</li>
+        <li>${uiT('限時 45 分鐘，中途唔會顯示答案','45-minute limit; no answers shown during the exam')}</li>
+        <li>${uiT('合格標準：甲部答對 ≥25 題','Pass mark: Part A 25 or more correct')} <b>${uiT('及','AND')}</b> ${uiT('乙部答對 ≥30 題（兩部獨立計分）','Part B 30 or more correct (scored independently)')}</li>
+        <li>${uiT('題目由 842 題題庫隨機抽取','Questions drawn at random from the 842-question bank')}</li>
       </ul>
-      <button class="big-start" onclick="startExam()">開始測試</button>
+      <button class="big-start" onclick="startExam()">${uiT('開始測試','Start Exam')}</button>
     </div>`;
 }
 function pickN(pool, n){
@@ -875,40 +900,40 @@ function updateTimer(){
 function renderExam(){
   const q = E.list[E.i];
   const partCls = q.part === '甲部' ? 'chip-a' : 'chip-b';
-  const partNo = q.part === '甲部' ? `甲部 第 ${E.i+1} 題` : `乙部 第 ${E.i-29} 題`;
+  const partNo = q.part === '甲部' ? `${uiT('甲部','Part A')} ${uiT('題號','Q')} ${E.i+1}` : `${uiT('乙部','Part B')} ${uiT('題號','Q')} ${E.i-29}`;
   const chosen = E.ans[E.i];
   app.innerHTML = `
     <div class="q-meta">
       <span class="chip ${partCls}">${partNo}</span>
-      <span class="chip chip-cat">${q.cat}</span>
+      <span class="chip chip-cat">${uiT(q.cat, CAT_EN[q.cat] || q.cat)}</span>
       <div class="q-progress"><i style="width:${(E.i+1)/E.list.length*100}%"></i></div>
       <span class="q-num">${E.i+1} / 65</span>
     </div>
     <div class="q-card">
       <div class="q-text">${q.q}</div>
-      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
+      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="${uiT('交通標誌','traffic sign')}" onclick="window.open(this.src)">` : ''}
       ${q.opts.map((o, i) => `
         <button class="opt ${chosen===i?'correct':''}" onclick="E.ans[E.i]=${i};renderExam()">
           <span class="ol">${'ABCD'[i]}</span><span>${o}</span>
         </button>`).join('')}
     </div>
     <div class="q-nav">
-      <button onclick="navExam(-1)" ${E.i===0?'disabled':''}>← 上一題</button>
+      <button onclick="navExam(-1)" ${E.i===0?'disabled':''}>← ${uiT('上一題','Prev')}</button>
       ${E.i < E.list.length-1
-        ? `<button class="primary" onclick="navExam(1)">下一題 →</button>`
-        : `<button class="primary" onclick="confirmSubmit()">交卷 ✔</button>`}
+        ? `<button class="primary" onclick="navExam(1)">${uiT('下一題','Next')} →</button>`
+        : `<button class="primary" onclick="confirmSubmit()">${uiT('交卷','Submit')} ✔</button>`}
     </div>
     <div class="palette">
       ${E.list.map((_, i) => `<button class="${E.ans[i]!==undefined?'done':''} ${i===E.i?'cur':''}" onclick="E.i=${i};renderExam()">${i+1}</button>`).join('')}
     </div>
     <div style="text-align:center;margin-top:14px">
-      <button class="danger-link" onclick="confirmSubmit()">提前交卷</button>
+      <button class="danger-link" onclick="confirmSubmit()">${uiT('提前交卷','Submit early')}</button>
     </div>`;
 }
 function navExam(d){ E.i += d; renderExam(); window.scrollTo({top:0,behavior:'smooth'}); }
 function confirmSubmit(){
   const un = E.list.length - Object.keys(E.ans).length;
-  if(un > 0 && !confirm(`仲有 ${un} 題未答，確定交卷？`)) return;
+  if(un > 0 && !confirm(`${uiT('仲有','There are still')} ${un} ${uiT('題未答，確定交卷？','unanswered questions. Submit now?')}`)) return;
   stopTimer(); submitExam(false);
 }
 function submitExam(timeout){
@@ -932,28 +957,28 @@ function submitExam(timeout){
   const wrongN = examWrongIdx().length;
   app.innerHTML = `
     <div class="result-hero ${pass?'pass':'fail'}">
-      <div class="big">${pass ? '合格' : '不合格'}</div>
-      <div class="small">${timeout ? '時間到，已自動交卷｜' : ''}${pass ? '兩部均達標，繼續保持！' : '任何一部唔達標都係不合格，再努力！'}｜錯 ${wrongN} 題</div>
+      <div class="big">${pass ? uiT('合格','PASS') : uiT('不合格','FAIL')}</div>
+      <div class="small">${timeout ? uiT('時間到，已自動交卷｜','Time is up, submitted automatically | ') : ''}${pass ? uiT('兩部均達標，繼續保持！','Both parts passed. Keep it up!') : uiT('任何一部唔達標都係不合格，再努力！','Failing either part means overall failure. Try again!')}｜${uiT('錯','wrong')} ${wrongN}</div>
     </div>
     <div class="part-score">
       <div>
         <div class="ps" style="color:${aOk>=25?'var(--green)':'var(--red)'}">${aOk} / 30</div>
-        <div class="pt">甲部（合格線 25）</div>
-        <span class="badge ${aOk>=25?'ok':'no'}">${aOk>=25?'達標':'未達標'}</span>
+        <div class="pt">${uiT('甲部（合格線 25）','Part A (pass 25)')}</div>
+        <span class="badge ${aOk>=25?'ok':'no'}">${aOk>=25?uiT('達標','Met'):uiT('未達標','Not met')}</span>
       </div>
       <div>
         <div class="ps" style="color:${bOk>=30?'var(--green)':'var(--red)'}">${bOk} / 35</div>
-        <div class="pt">乙部（合格線 30）</div>
-        <span class="badge ${bOk>=30?'ok':'no'}">${bOk>=30?'達標':'未達標'}</span>
+        <div class="pt">${uiT('乙部（合格線 30）','Part B (pass 30)')}</div>
+        <span class="badge ${bOk>=30?'ok':'no'}">${bOk>=30?uiT('達標','Met'):uiT('未達標','Not met')}</span>
       </div>
     </div>
     <div class="mode-grid" style="margin-bottom:18px">
       ${wrongN
-        ? `<button class="mode-btn" style="border-left-color:var(--red)" onclick="reviewExamWrong(0)"><div class="mt">睇錯題</div><div class="md">只睇今次答錯／未答嘅 ${wrongN} 題，可逐題收藏</div></button>
-           <button class="mode-btn purple" onclick="favAllWrong()"><div class="mt">收藏全部錯題</div><div class="md">一鍵加入收藏，之後主頁可重溫</div></button>`
-        : `<button class="mode-btn green" disabled style="opacity:.7"><div class="mt">全對</div><div class="md">今次冇錯題</div></button>`}
-      <button class="mode-btn" onclick="reviewExam(0)"><div class="mt">全部檢討</div><div class="md">65 題逐題睇返正確答案同出處</div></button>
-      <button class="mode-btn gold" onclick="showExamIntro()"><div class="mt">再考一次</div><div class="md">重新隨機組卷</div></button>
+        ? `<button class="mode-btn" style="border-left-color:var(--red)" onclick="reviewExamWrong(0)"><div class="mt">${uiT('睇錯題','Review wrong')}</div><div class="md">${uiT('只睇今次答錯／未答嘅','Only the')} ${wrongN} ${uiT('題，可逐題收藏','questions wrong/unanswered this time; save any')}</div></button>
+           <button class="mode-btn purple" onclick="favAllWrong()"><div class="mt">${uiT('收藏全部錯題','Save all wrong')}</div><div class="md">${uiT('一鍵加入收藏，之後主頁可重溫','Add all to Saved; review from home')}</div></button>`
+        : `<button class="mode-btn green" disabled style="opacity:.7"><div class="mt">${uiT('全對','All correct')}</div><div class="md">${uiT('今次冇錯題','No wrong answers this time')}</div></button>`}
+      <button class="mode-btn" onclick="reviewExam(0)"><div class="mt">${uiT('全部檢討','Review all')}</div><div class="md">${uiT('65 題逐題睇返正確答案同出處','Go through all 65 with correct answers and sources')}</div></button>
+      <button class="mode-btn gold" onclick="showExamIntro()"><div class="mt">${uiT('再考一次','Retake')}</div><div class="md">${uiT('重新隨機組卷','New random paper')}</div></button>
     </div>
     ${adSlot(window.ADSENSE && ADSENSE.slotResult)}`;
   fillAds();
@@ -975,8 +1000,8 @@ function favAllWrong(){
 function reviewExamWrong(wi){
   const wrongs = examWrongIdx();
   if(!wrongs.length){
-    app.innerHTML = `<div class="empty-box"><div class="ic"></div>今次冇錯題<br><br>
-      <button class="hd-back" style="color:var(--ink);background:var(--line)" onclick="goHome()">返回主頁</button></div>`;
+    app.innerHTML = `<div class="empty-box"><div class="ic"></div>${uiT('今次冇錯題','No wrong answers this time')}<br><br>
+      <button class="hd-back" style="color:var(--ink);background:var(--line)" onclick="goHome()">${uiT('返回主頁','Back to home')}</button></div>`;
     return;
   }
   if(wi < 0) wi = 0;
@@ -987,15 +1012,15 @@ function reviewExamWrong(wi){
   const ok = chosen === q.ans;
   app.innerHTML = `
     <div class="q-meta">
-      <span class="chip chip-a">錯題 ${wi+1}/${wrongs.length}</span>
-      <span class="chip ${q.part==='甲部'?'chip-a':'chip-b'}">${q.part} 第${i+1}題</span>
-      <span class="chip chip-cat">${q.cat}</span>
+      <span class="chip chip-a">${uiT('錯題','Wrong')} ${wi+1}/${wrongs.length}</span>
+      <span class="chip ${q.part==='甲部'?'chip-a':'chip-b'}">${q.part==='甲部'?uiT('甲部','Part A'):uiT('乙部','Part B')} ${uiT('第','Q')}${i+1}</span>
+      <span class="chip chip-cat">${uiT(q.cat, CAT_EN[q.cat] || q.cat)}</span>
       <div class="q-progress"><i style="width:${(wi+1)/wrongs.length*100}%"></i></div>
     </div>
     <div class="q-card">
       <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
       <div class="q-text">${q.q}</div>
-      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
+      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="${uiT('交通標誌','traffic sign')}" onclick="window.open(this.src)">` : ''}
       ${q.opts.map((o, j) => `
         <div class="opt ${j===q.ans?'correct':(j===chosen?'wrong':'dim')}" style="cursor:default">
           <span class="ol">${'ABCD'[j]}</span><span>${o}</span>
@@ -1027,7 +1052,7 @@ function reviewExam(i){
     <div class="q-card">
       <button class="fav-btn ${favIds.has(q.id)?'on':''}" onclick="toggleFav(${q.id}, this)" title="收藏"></button>
       <div class="q-text">${q.q}</div>
-      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="交通標誌" onclick="window.open(this.src)">` : ''}
+      ${q.img ? `<img class="q-img" src="${signUrl(q.img)}" alt="${uiT('交通標誌','traffic sign')}" onclick="window.open(this.src)">` : ''}
       ${q.opts.map((o, j) => `
         <div class="opt ${j===q.ans?'correct':(j===chosen?'wrong':'dim')}" style="cursor:default">
           <span class="ol">${'ABCD'[j]}</span><span>${o}</span>
