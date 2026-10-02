@@ -1,0 +1,58 @@
+"""Canonical EN phrasings for recurring zh question/option patterns in the exam bank.
+Ordered by specificity; first match wins. {0},{1}... are glossary slots filled with
+canonical EN term translations."""
+CANON_Q = [
+    # route question template
+    (r'^若由(.+?)駛至(.+?)，在正常交通情況下，以及不需考慮隧道收費（如適用）的情形下，哪一條路線最直接可行？$',
+     'If you drive from {0} to {1}, under normal traffic conditions and not considering tunnel fees (if applicable), which route is the most direct viable route?'),
+    (r'^(.+?)位於哪裡？$', 'Where is {0}?'),
+    (r'^圖中交通標誌表示甚麼？$', 'What does the traffic sign in the picture mean?'),
+    (r'^(.+?)是甚麼？$', 'What is {0}?'),
+    (r'^(.+?)是指甚麼？$', 'What is meant by {0}?'),
+    (r'^甚麼是(.+?)？$', 'What is {0}?'),
+    (r'^(.+?)的作用是甚麼？$', 'What is the purpose of {0}?'),
+    (r'^(.+?)表示甚麼？$', 'What does {0} mean?'),
+    (r'^(.+?)屬於甚麼性質？$', 'What is the nature of {0}?'),
+    (r'^(.+?)的標記是甚麼？$', 'What is the marking for {0}?'),
+    (r'^(.+?)的距離是指甚麼？$', 'What is meant by the {0} distance?'),
+    (r'^駕駛時(.+?)？$', 'When driving, {0}?'),
+    (r'^(.+?)前，你應先怎樣？$', 'Before {0}, what should you do first?'),
+    (r'^你應該(.+?)？$', 'Should you {0}?'),
+    (r'^應否(.+?)？$', 'Should you {0}?'),
+    (r'^須否(.+?)？$', 'Must you {0}?'),
+    (r'^(.+?)時應該怎樣？$', 'What should you do when {0}?'),
+    (r'^(.+?)時，你應該(.+?)？$', 'When {0}, you should {1}?'),
+    (r'^(.+?)時，你應(.+?)？$', 'When {0}, you should {1}?'),
+    (r'^如(.+?)，你應(.+?)？$', 'If {0}, you should {1}?'),
+    (r'^如(.+?)，應(.+?)？$', 'If {0}, should you {1}?'),
+    (r'^如(.+?)，你應該(.+?)？$', 'If {0}, what should you do about {1}?'),
+    (r'^如果(.+?)，你應(.+?)？$', 'If {0}, you should {1}?'),
+    (r'^(.+?)是多少？$', 'What is the {0}?'),
+    (r'^幾多(.+?)？$', 'How many {0}?'),
+    (r'^多少(.+?)？$', 'How many {0}?'),
+    (r'^(.+?)有幾多？$', 'How many {0} are there?'),
+    (r'^(.+?)必須做甚麼？$', 'What must {0} do?'),
+    (r'^(.+?)應該做甚麼？$', 'What should {0} do?'),
+    (r'^(.+?)是指(.+?)及(.+?)$', '{0} refers to {1} and {2}'),
+    (r'^在(.+?)時，你應該(.+?)$', 'When {0}, you should {1}'),
+    (r'^為甚麼(.+?)？$', 'Why {0}?'),
+    (r'^何謂(.+?)？$', 'What is {0}?'),
+    (r'^以下哪一項為不正確的：$', 'Which of the following is incorrect:'),
+    (r'^(.+?)可達到甚麼效果？$', 'What effect does {0} achieve?'),
+    (r'^(.+?)會受到甚麼處罰？$', 'What penalty may be imposed for {0}?'),
+    (r'^(.+?)的最高罰則是甚麼？$', 'What is the maximum penalty for {0}?'),
+]
+
+# option prefixes
+OPT_PREFIX = [
+    (r'^經(.+)$', 'Via {0}'),
+    (r'^不(.+)$', 'Not {0}'),
+    (r'^應(.+)$', 'Should {0}'),
+    (r'^須(.+)$', 'Must {0}'),
+    (r'^可以(.+)$', 'May {0}'),
+    (r'^不可(.+)$', 'Must not {0}'),
+    (r'^不應(.+)$', 'Should not {0}'),
+    (r'^禁止(.+)$', 'No {0}'),
+    (r'^只限(.+)$', 'Only {0}'),
+    (r'^只准(.+)$', 'Only {0}'),
+]
