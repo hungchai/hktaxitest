@@ -307,6 +307,16 @@ function prioritize(pool){
   return un.concat(wr, ok);
 }
 /* 7日合格計劃 */
+function planEnMeta(day){ return PLAN_EN_META[day]; }
+const PLAN_EN_META = {
+  1: { title: 'Part A: Passenger service (1) + places basics', tip: 'Taxi/RHV rules, licences, fares, e-payment', tasks: ['Passenger Service Q1-75', 'Places Q1-40'] },
+  2: { title: 'Part A: Passenger service (2) + places', tip: '11 offence-points offences, two-tier penalties, hospitals and attractions', tasks: ['Passenger Service Q76-150', 'Places Q41-80'] },
+  3: { title: 'Part A: Places + routes', tip: 'Hotels, government offices + clear the wrong-answer book', tasks: ['Places Q81-200', 'Wrong Answer Book'] },
+  4: { title: 'Part A: Places + routes', tip: 'Commercial buildings, malls, estates, institutions + all Appendix II routes', tasks: ['Places Q201-255', 'Official Routes (all 20)'] },
+  5: { title: 'Part B: Road Users Code (1)', tip: 'Licences, offence points, seat belts', tasks: ['Code Q1-120'] },
+  6: { title: 'Part B: Code (2) + signs', tip: 'Alcohol/drugs, stopping distances, speed, overtaking, pedestrians', tasks: ['Code Q121-240', 'Wrong Answer Book'] },
+  7: { title: 'Part B: Signs + weak areas', tip: 'Sign images + target: Part A >=25 AND Part B >=30', tasks: ['Code Q241-300', 'Sign Images (all 112)', 'Mock Exam (both parts)', 'Wrong Answer Book'] }
+};
 const PLAN = [
   { day:1, title:'甲部・載客服務（上）＋地方入門', tip:'的士／網約車基本規則、牌照、收費、電子繳費', tasks:[
     { label:'載客服務知識 第1–75題', cat:'載客服務知識', from:0, to:75 },
@@ -420,15 +430,6 @@ const CAT_EN = {
   '路線試題': 'Routes',
   '道路使用者守則': "Road Users' Code",
   '交通標誌（圖片題）': 'Traffic Signs (Images)'
-};
-const PLAN_EN = {
-  1: 'Part A: Passenger service (1) + places basics',
-  2: 'Part A: Passenger service (2) + places',
-  3: 'Part A: Places + routes',
-  4: 'Part B: Road Users Code (1)',
-  5: 'Part B: Road Users Code (2) + signs',
-  6: 'Part B: Signs + weak areas',
-  7: 'Mock exam + final review'
 };
 async function toggleLang(){
   const btn = document.getElementById('langBtn');
@@ -643,20 +644,20 @@ function taskQs(tk){
 function taskStat(tk){
   if(tk.type === 'exam'){
     const passed = exams.some(e => e.pass);
-    let bestTxt = '未考過';
+    let bestTxt = uiT('未考過','Not taken yet');
     if(exams.length){
       const best = exams.reduce((m, e) => (e.a + e.b > m.a + m.b ? e : m), exams[0]);
-      bestTxt = `最佳：甲 ${best.a}/30・乙 ${best.b}/35${best.pass ? '（已達標）' : ''}`;
+      bestTxt = `${uiT('最佳','Best')}: ${uiT('甲','A')} ${best.a}/30 - ${uiT('乙','B')} ${best.b}/35${best.pass ? uiT('（已達標）',' (passed)') : ''}`;
     }
     return { done: passed ? 1 : 0, total: 1, txt: bestTxt, icon: passed ? '✅' : '⏱️' };
   }
   if(tk.type === 'wrong'){
-    return { done: wrongIds.size === 0 ? 1 : 0, total: 1, txt: wrongIds.size === 0 ? '已清零，保持住！' : `仲有 ${wrongIds.size} 題錯題`, icon: wrongIds.size === 0 ? '✅' : '❌' };
+    return { done: wrongIds.size === 0 ? 1 : 0, total: 1, txt: wrongIds.size === 0 ? uiT('已清零，保持住！','All cleared. Keep it up!') : `${uiT('仲有','Still')} ${wrongIds.size} ${uiT('題錯題','wrong answers')}`, icon: wrongIds.size === 0 ? '✅' : '❌' };
   }
   const qs = taskQs(tk);
   const done = qs.filter(q => hist[q.id] !== undefined).length;
   const full = done === qs.length;
-  return { done, total: qs.length, txt: `${done}/${qs.length} 題已做`, icon: full ? '✅' : (done > 0 ? '🔵' : '⚪') };
+  return { done, total: qs.length, txt: `${done}/${qs.length} ${uiT('題已做','done')}`, icon: full ? '✅' : (done > 0 ? '🔵' : '⚪') };
 }
 function showPlan(){
   stopTimer();
@@ -689,8 +690,8 @@ function showPlan(){
       const status = allDone ? `✅ ${uiT('完成','Done')}` : (started ? `🔥 ${uiT('進行中','In progress')}` : uiT('未開始','Not started'));
       return `
       <div class="plan-day ${cls}">
-        <h3>${uiT('第','Day ')} ${d.day} ${uiT('日','')}｜${window.LANG === 'en' ? (PLAN_EN[d.day-1] || d.title) : d.title}</h3>
-        <div class="tip">${d.tip}｜${status}</div>
+        <h3>${uiT('第','Day ')} ${d.day} ${uiT('日','')}｜${window.LANG === 'en' ? ((planEnMeta(d.day) || {}).title || d.title) : d.title}</h3>
+        <div class="tip">${window.LANG === 'en' ? ((planEnMeta(d.day) || {}).tip || d.tip) : d.tip}｜${status}</div>
         ${d.tasks.map((tk, ti) => {
           const s = stats[ti];
           const act = tk.type === 'exam' ? 'showExamIntro()' : (tk.type === 'wrong' ? `startPractice('wrong')` : `startPlanTask(${di},${ti})`);
@@ -698,7 +699,7 @@ function showPlan(){
           return `
           <button class="task-row" onclick="${act}">
             <span class="ts">${s.icon}</span>
-            <span class="tm"><b>${tk.label}</b><small>${s.txt}</small>${bar}</span>
+            <span class="tm"><b>${window.LANG === 'en' ? ((planEnMeta(d.day) || {}).tasks || [])[ti] || tk.label : tk.label}</b><small>${s.txt}</small>${bar}</span>
             <span class="ts">›</span>
           </button>`;
         }).join('')}
@@ -711,7 +712,7 @@ function startPlanTask(di, ti){
   const pool = prioritize(taskQs(tk));
   if(!pool.length) return;
   P = { mode:'plan', pool, i:0, answered:false, catFilter:null,
-        planLabel:`📅 ${uiT('第','Day ')}${PLAN[di].day}${uiT('日','')}｜${window.LANG === 'en' ? (PLAN_EN[PLAN[di].day-1] || tk.label) : tk.label}`, planDay: di, planTask: ti };
+        planLabel:`📅 ${uiT('第','Day ')}${PLAN[di].day}${uiT('日','')}｜${window.LANG === 'en' ? (((planEnMeta(PLAN[di].day) || {}).tasks || [])[ti] || tk.label) : tk.label}`, planDay: di, planTask: ti };
   curView = 'practice';
   hdBack.classList.remove('hidden');
   renderPractice();
