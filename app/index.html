@@ -456,6 +456,7 @@ async function toggleLang(){
       stopTimer();
       goHome();
     } else {
+      store.set(LS.lang, 'zh');
       location.reload();
     }
   }catch(e){
