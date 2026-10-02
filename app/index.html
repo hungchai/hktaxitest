@@ -384,7 +384,7 @@ function srcLabel(s){
 }
 /* 本地 PDF 用同一分頁開（避免彈窗被擋），外部網頁開新分頁 */
 function linkA(u, txt, cls){
-  const ext = /^https?:/.test(u) ? ' target="_blank" rel="noopener"' : '';
+  const ext = ' target="_blank" rel="noopener"';
   return `<a class="src-mini ${cls||''}" href="${u}"${ext}>${txt}</a>`;
 }
 /* 出處卡：頁碼＋原文節錄＋PDF直達 */
